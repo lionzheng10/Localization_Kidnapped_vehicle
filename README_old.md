@@ -1,9 +1,3 @@
-## Udacity CarND-Kidnapped-Vehicle-Project
-
-####Zheng lei 2018 April
-
-
-
 # Overview
 This repository contains all the code needed to complete the final project for the Localization course in Udacity's Self-Driving Car Nanodegree.
 
