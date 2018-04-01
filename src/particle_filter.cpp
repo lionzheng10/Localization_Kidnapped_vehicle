@@ -141,11 +141,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
   // for each particle...
 
-  for (int i = 0; i < particles.size(); i++){
-    std::cout << "before_updated: " << i << "  theta:"<< particles[i].theta << "  weight:" << particles[i].weight 
-    << "  x:"<< particles[i].x << "  y:" << particles[i].y << endl;
-  }
-  std::cout << "--------------------------" << endl;
+  //for (int i = 0; i < particles.size(); i++){
+  //  std::cout << "before_updated: " << i << "  theta:"<< particles[i].theta << "  weight:" << particles[i].weight 
+  //  << "  x:"<< particles[i].x << "  y:" << particles[i].y << endl;
+  //}
+  //std::cout << "--------------------------" << endl;
 
   for (int i = 0; i < num_particles; i++) {
 
@@ -236,16 +236,16 @@ void ParticleFilter::resample() {
   uniform_int_distribution<int> uniintdist(0, num_particles-1);
   auto index = uniintdist(gen);
 
-  std::cout << "random_starting_index: " << index << endl;
+  //std::cout << "random_starting_index: " << index << endl;
 
   // get max weight
   double max_weight = *max_element(weights.begin(), weights.end());
 
-  std::cout << "max_weight: " << max_weight << endl;
+  //std::cout << "max_weight: " << max_weight << endl;
 
   // uniform random distribution [0.0, max_weight)
   uniform_real_distribution<double> unirealdist(0.0, max_weight);
-  std::cout << "unirealdist: " << unirealdist(gen) << "unirealdist: " << unirealdist(gen) << "unirealdist: " << unirealdist(gen) << endl;
+  //std::cout << "unirealdist: " << unirealdist(gen) << "unirealdist: " << unirealdist(gen) << "unirealdist: " << unirealdist(gen) << endl;
 
   double beta = 0.0;
 
@@ -254,8 +254,8 @@ void ParticleFilter::resample() {
     double randomd;
     randomd = unirealdist(gen);
     beta +=  randomd * 2.0;
-    std::cout << "randomd: " << randomd << endl;
-    std::cout << "beta+=: " << beta << endl;
+    //std::cout << "randomd: " << randomd << endl;
+    //std::cout << "beta+=: " << beta << endl;
 
     while (beta > weights[index]) {
       beta -= weights[index];
@@ -263,8 +263,8 @@ void ParticleFilter::resample() {
     }
     
     new_particles.push_back(particles[index]);
-    std::cout << "index:" << index << endl;
-    std::cout << "beta-=: " << beta << endl <<"--------------" << endl;
+    //std::cout << "index:" << index << endl;
+    //std::cout << "beta-=: " << beta << endl <<"--------------" << endl;
   }
 
   //for (int i = 0; i < particles.size(); i++){
