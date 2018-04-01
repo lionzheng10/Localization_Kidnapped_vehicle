@@ -1,98 +1,63 @@
 ## Udacity CarND-Kidnapped-Vehicle-Project
 
 ####Zheng lei 2018 April
-
-
+github repository:
+https://github.com/lionzheng10/Localization_Kidnapped_vehicle
 
 # Overview
 This repository contains all the code needed to complete the final project for the Localization course in Udacity's Self-Driving Car Nanodegree.
 
-#### Submission
-All you will submit is your completed version of `particle_filter.cpp`, which is located in the `src` directory. You should probably do a `git pull` before submitting to verify that your project passes the most up-to-date version of the grading code (there are some parameters in `src/main.cpp` which govern the requirements on accuracy and run time.)
+
 
 ## Project Introduction
 Your robot has been kidnapped and transported to a new location! Luckily it has a map of this location, a (noisy) GPS estimate of its initial location, and lots of (noisy) sensor and control data.
 
-In this project you will implement a 2 dimensional particle filter in C++. Your particle filter will be given a map and some initial localization information (analogous to what a GPS would provide). At each time step your filter will also get observation and control data. 
+In this project you will implement a 2 dimensional particle filter in C++. Your particle filter will be given a map and some initial localization information (analogous to what a GPS would provide). At each time step your filter will also get observation(landmark position in vehicle coordinate) and control data(velocity,yaw_rate). 
 
-## Running the Code
-This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)
+<img src="./image/Screencast.gif" style="width:80%" >
 
-This repository includes two files that can be used to set up and intall uWebSocketIO for either Linux or Mac systems. For windows you can use either Docker, VMware, or even Windows 10 Bash on Ubuntu to install uWebSocketIO.
+## Localization
+The project is actually an **Localization** problem. Localization is mean find **WHERE I AM** in a map. 
+What you know is:
+- The map, which contains landmark's position in map coordinate (world coordinate)
+- The initial position of the car(map coordinate)
 
-Once the install for uWebSocketIO is complete, the main program can be built and ran by doing the following from the project top directory.
+In every cycle, you have these data(from simulator or from the real vehicle):
+- The landmark's position from sensor(in vehicle coordinate)
+- The control data, include velocity and yawrate of the car
 
-1. mkdir build
-2. cd build
-3. cmake ..
-4. make
-5. ./particle_filter
+What you want to calculate is:
+- Where is the car in the map coordinate
 
-Alternatively some scripts have been included to streamline this process, these can be leveraged by executing the following in the top directory of the project:
+## Data flow:
+<img src="./image/particle_filter_structure.png" style="width:90%" >
 
-1. ./clean.sh
-2. ./build.sh
-3. ./run.sh
+#### The Map
+You can find `map_data.txt` in the `data` directory.  It includes the position of landmarks (in meters) on an arbitrary Cartesian coordinate system. Each row has three columns
+1. x position
+2. y position
+3. landmark id
 
-Tips for setting up your environment can be found [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
-
-Note that the programs that need to be written to accomplish the project are src/particle_filter.cpp, and particle_filter.h
-
-The program main.cpp has already been filled out, but feel free to modify it.
-
-Here is the main protcol that main.cpp uses for uWebSocketIO in communicating with the simulator.
-
-INPUT: values provided by the simulator to the c++ program
-
-// sense noisy position data from the simulator
-
-["sense_x"] 
-
-["sense_y"] 
-
-["sense_theta"] 
-
-// get the previous velocity and yaw rate to predict the particle's transitioned state
-
-["previous_velocity"]
-
-["previous_yawrate"]
-
-// receive noisy observation data from the simulator, in a respective list of x/y values
-
-["sense_observations_x"] 
-
-["sense_observations_y"] 
-
-
-OUTPUT: values provided by the c++ program to the simulator
-
-// best particle values used for calculating the error evaluation
-
-["best_particle_x"]
-
-["best_particle_y"]
-
-["best_particle_theta"] 
-
-//Optional message data used for debugging particle's sensing and associations
-
-// for respective (x,y) sensed positions ID label 
-
-["best_particle_associations"]
-
-// for respective (x,y) sensed positions
-
-["best_particle_sense_x"] <= list of sensed x positions
-
-["best_particle_sense_y"] <= list of sensed y positions
-
-
-Your job is to build out the methods in `particle_filter.cpp` until the simulator output says:
+#### From simulator
 
 ```
-Success! Your particle filter passed!
+ ["telemetry",{"sense_x":"7.1089","sense_y":"2.3117","sense_theta":"0.3050","previous_velocity":"3.9611","previous_yawrate":"3.0937","sense_observations_x":"3.7287 8.1344 -19.4559 -5.4781 6.5436 32.3996 -24.2259 19.6123 -42.1905 8.2219 -48.9066 ","sense_observations_y":"4.2655 -9.6414 3.4885 -22.1903 -25.7387 3.2385 -30.6744 -38.8006 -12.5755 -46.1126 0.4206 "}]
+
 ```
+
+1. `sense_x`,`sense_y` position of the veichle in the world coordinate
+2. `previous_velocity`,`previous_yawrate` velocity used for prediction
+3. `sense_observations_x`,`sense_observations_y` observation data, position of landmarks in car coordinate
+
+# What is Particle Filter
+A particle is smart object, who can move and observe the enviroment. Imagine you have thousands of particles. At the beginning, these particles was randomly in the area. Like the picture below. The green dot is your robot, but now the robot did not know where it is.
+<img src="./image/Particle_Filters1.png" style="width:60%" >
+
+Then the robot begin to move. Every particles moves in the same way. The particle observe the enviroment, especially the landmark position. And compute the diffrence between what he sensed and the map. If the difference is small, the particle survive. If the difference is large, the particle disappear. To keep the same amount of particles. We need realocate the particles depending on the difference. After sevral cycles, the particles will gathered around the robot. Like the picture below. Then we can use the best particle's positon as our robot's position.
+
+<img src="./image/Particle_Filters2.png" style="width:60%" >
+
+
 
 # Implementing the Particle Filter
 The directory structure of this repository is as follows:
@@ -118,25 +83,40 @@ root
     |   particle_filter.h
 ```
 
-The only file you should modify is `particle_filter.cpp` in the `src` directory. The file contains the scaffolding of a `ParticleFilter` class and some associated methods. Read through the code, the comments, and the header file `particle_filter.h` to get a sense for what this code is expected to do.
 
-If you are interested, take a look at `src/main.cpp` as well. This file contains the code that will actually be running your particle filter and calling the associated methods.
+- ParticleFilter::init
+  TODO: Set the number of particles. Initialize all particles to first position (based on estimates of x, y, theta and their uncertainties from GPS) and all weights to 1. Add random Gaussian noise to each particle.
 
-## Inputs to the Particle Filter
-You can find the inputs to the particle filter in the `data` directory. 
+- ParticleFilter::prediction
+  TODO: Add measurements to each particle and add random Gaussian noise.
+  
+- ParticleFilter::dataAssociation
+  TODO: Find the predicted measurement that is closest to each observed measurement and assign the observed measurement to this particular landmark.
+  
+- ParticleFilter::updateWeights
+  TODO: Update the weights of each particle using a mult-variate Gaussian distribution.
+  
+- ParticleFilter::resample
+  TODO: Resample particles with replacement with probability proportional to their weight. Big weight particles will increase, and small weight particles will delete.
 
-#### The Map*
-`map_data.txt` includes the position of landmarks (in meters) on an arbitrary Cartesian coordinate system. Each row has three columns
-1. x position
-2. y position
-3. landmark id
 
-### All other data the simulator provides, such as observations and controls.
 
-> * Map data provided by 3D Mapping Solutions GmbH.
+## Running the Code
+This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)
+
+This repository includes two files that can be used to set up and intall uWebSocketIO for either Linux or Mac systems. For windows you can use either Docker, VMware, or even Windows 10 Bash on Ubuntu to install uWebSocketIO.
+
+Once the install for uWebSocketIO is complete, the main program can be built and ran by doing the following from the project top directory.
+
+1. mkdir build
+2. cd build
+3. cmake ..
+4. make
+5. ./particle_filter
+
+
 
 ## Success Criteria
-If your particle filter passes the current grading code in the simulator (you can make sure you have the current version at any time by doing a `git pull`), then you should pass! 
 
 The things the grading code is looking for are:
 
@@ -145,8 +125,9 @@ The things the grading code is looking for are:
 
 2. **Performance**: your particle filter should complete execution within the time of 100 seconds.
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+Your job is to build out the methods in `particle_filter.cpp` until the simulator output says:
 
-
-
+```
+Success! Your particle filter passed!
+```
+<img src="./image/success.png" style="width:60%" >
